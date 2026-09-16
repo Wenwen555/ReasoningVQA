@@ -1,5 +1,7 @@
 # ReasoningVQA
 
+> English | [简体中文](README.zh-CN.md)
+
 A configuration-driven training and evaluation pipeline for **multi-hop knowledge
 reasoning VQA** with vision-language models. Source datasets (iNaturalist, GLDv2,
 Visual Genome) are normalized into a single canonical manifest, then fed to a
