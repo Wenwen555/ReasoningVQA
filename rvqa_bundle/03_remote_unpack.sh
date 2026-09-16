@@ -32,7 +32,10 @@
 # =============================================================================
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/home/ma-user/work/rvqa}"
+# Set REPO_ROOT to the directory that contains rvqa_bundle/ (empty by default).
+REPO_ROOT="${REPO_ROOT:-}"
+if [[ -z "$REPO_ROOT" ]]; then echo "set REPO_ROOT to the repo root"; exit 1; fi
+export REPO_ROOT
 BUNDLE="$REPO_ROOT/rvqa_bundle"
 BENCH="$REPO_ROOT/reasoningvqa_bench"
 
@@ -226,7 +229,7 @@ fi
 echo "==> [6/6] verifying"
 cat > /tmp/rvqa_verify.py <<'PY'
 import json, os, pathlib, sys
-repo = pathlib.Path(os.environ.get("REPO_ROOT", "/home/ma-user/work/rvqa"))
+repo = pathlib.Path(os.environ.get("REPO_ROOT", ""))
 bench = repo / "reasoningvqa_bench"
 subsets = repo / "reasoningvqa_subsets"
 ok = True
@@ -264,11 +267,11 @@ for rel in ("pipeline/run_pipeline.py", "scoring/score_predictions.py",
     print(f"  {'OK ' if q.exists() else 'MISS'} {q}")
     ok = ok and q.exists()
 
-print("--- models (MEASURED remote layout: /home/ma-user/work/rvqa) ---")
+print(f"--- models (repo root: {repo}) ---")
 models = (
-    "/home/ma-user/work/rvqa/llm_models/Qwen2.5-VL-7B-Instruct",
-    "/home/ma-user/work/rvqa/models/llm_models/MiniCPM-V-2_6",
-    "/home/ma-user/work/rvqa/models/llm_models/Qwen2.5-VL-32B-Instruct",
+    repo / "llm_models/Qwen2.5-VL-7B-Instruct",
+    repo / "models/llm_models/MiniCPM-V-2_6",
+    repo / "models/llm_models/Qwen2.5-VL-32B-Instruct",
 )
 for m in models:
     exists = pathlib.Path(m).exists()
@@ -277,7 +280,7 @@ for m in models:
         ok = False
 
 # Deliberately not migrated; the user downloads it on the remote. Expected to be absent.
-awq = "/home/ma-user/work/rvqa/llm_models/Qwen3-VL-32B-Instruct-AWQ"
+awq = repo / "llm_models/Qwen3-VL-32B-Instruct-AWQ"
 print(f"  INFO {awq}")
 print("       \u9884\u671f\u7f3a\u5931\uff1a\u7531\u7528\u6237\u8fdc\u7aef\u81ea\u884c\u4e0b\u8f7d (expected absent: user downloads it on the remote)")
 

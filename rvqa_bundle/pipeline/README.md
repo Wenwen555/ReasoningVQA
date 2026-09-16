@@ -3,10 +3,11 @@
 Self-contained, configuration-driven implementation of the active ReasoningVQA workflow.
 
 ```bash
-/data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python run_pipeline.py --config configs/example_pipeline.yaml prepare --dry-run
-/data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python run_pipeline.py --config configs/example_pipeline.yaml train --dry-run
-/data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python run_pipeline.py --config configs/example_pipeline.yaml evaluate --dry-run
-/data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python run_pipeline.py --config configs/example_pipeline.yaml all --dry-run
+# Fill in the empty paths in the config first.
+python run_pipeline.py --config configs/example_pipeline.yaml prepare --dry-run
+python run_pipeline.py --config configs/example_pipeline.yaml train --dry-run
+python run_pipeline.py --config configs/example_pipeline.yaml evaluate --dry-run
+python run_pipeline.py --config configs/example_pipeline.yaml all --dry-run
 ```
 
 Responsibilities:
@@ -58,9 +59,8 @@ and dev outputs. Artifact row counts are derived from manifests, never filenames
 Reusable tests:
 
 ```bash
-cd AscendDataForge/llm_finetuning_demo/ReasoningVQA
-PYTHONDONTWRITEBYTECODE=1 \
-  /data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python -m unittest discover -s tests -v
+cd rvqa_bundle/pipeline
+PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s tests -v
 ```
 
 The public source tree is versioned in Git; experiment outputs remain outside this code

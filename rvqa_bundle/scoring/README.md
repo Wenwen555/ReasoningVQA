@@ -85,19 +85,11 @@ See `semantic_history_validation.json`.
 ## Exact commands for the new eval sets
 
 ```bash
-PY=/data/wenjt/conda_envs/videoespresso-common/bin/python
-
-# iNaturalist
-$PY score_predictions.py \
-  --eval-jsonl /data/wenjt/reasoningvqa_subsets/inaturalist/eval.jsonl \
-  --predictions-jsonl /path/to/inat_predictions.jsonl \
-  --output-dir /data/wenjt/reasoningvqa_bench/scoring/out_inaturalist
-
-# Visual Genome
-$PY score_predictions.py \
-  --eval-jsonl /data/wenjt/reasoningvqa_subsets/visual_genome/eval.jsonl \
-  --predictions-jsonl /path/to/vg_predictions.jsonl \
-  --output-dir /data/wenjt/reasoningvqa_bench/scoring/out_visual_genome
+python score_predictions.py \
+  --eval-jsonl /path/to/eval.jsonl \
+  --predictions-jsonl /path/to/predictions.jsonl \
+  --output-dir /path/to/out \
+  --model-path /path/to/all-MiniLM-L6-v2
 ```
 
 ## Self-test artifacts in this directory

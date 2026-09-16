@@ -10,8 +10,9 @@ paths execute end to end and reach the first optimizer step.
 
 Run with::
 
-    CUDA_VISIBLE_DEVICES="" /data/wenjt/conda_envs/videoespresso-common/bin/python \
-        tools/verify_lora_scope_smoke.py
+    CUDA_VISIBLE_DEVICES="" RVQA_SMOKE_INV_QWEN25VL32B=/path/to/inventory.json \
+        RVQA_SMOKE_MODEL_QWEN25VL32B=/path/to/model \
+        python tools/verify_lora_scope_smoke.py
 """
 
 from __future__ import annotations
@@ -29,17 +30,18 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 ROOT = Path(__file__).resolve().parents[1]
 TRAINER = ROOT / "pipelines" / "train" / "train_qwen_vl_sft.py"
-DATASETS = [
-    (
-        "qwen25vl32b",
-        Path("/data/wenjt/reasoningvqa_bench/inventories/qwen25vl32b-instruct.json"),
-        Path("/data/wenjt/models/llm_models/Qwen2.5-VL-32B-Instruct"),
-    ),
-    (
-        "minicpmv26",
-        Path("/data/wenjt/reasoningvqa_bench/inventories/minicpmv26.json"),
-        Path("/data/wenjt/models/llm_models/MiniCPM-V-2_6"),
-    ),
+
+
+def _env_path(name: str) -> Path | None:
+    """Return ``Path(env[name])`` when set, else ``None``."""
+    value = os.environ.get(name, "").strip()
+    return Path(value) if value else None
+
+
+# (label, inventory env var, model env var); empty pairs are skipped.
+SMOKE_DATASETS = [
+    ("qwen25vl32b", "RVQA_SMOKE_INV_QWEN25VL32B", "RVQA_SMOKE_MODEL_QWEN25VL32B"),
+    ("minicpmv26", "RVQA_SMOKE_INV_MINICPMV26", "RVQA_SMOKE_MODEL_MINICPMV26"),
 ]
 
 import torch  # noqa: E402
@@ -232,16 +234,27 @@ def check_dataset(label, inventory_path, model_dir, work):
 
 
 def main():
+    datasets = [
+        (label, _env_path(inv_env), _env_path(model_env))
+        for label, inv_env, model_env in SMOKE_DATASETS
+        if _env_path(inv_env) and _env_path(model_env)
+    ]
+    if not datasets:
+        raise SystemExit(
+            "no smoke dataset configured; set RVQA_SMOKE_INV_QWEN25VL32B and "
+            "RVQA_SMOKE_MODEL_QWEN25VL32B (optionally the MiniCPM pair)"
+        )
+
     report = {}
     family_by_qwen = None
 
-    with tempfile.TemporaryDirectory(dir=ROOT / ".verify") as tmp:
+    with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
-        for label, inventory_path, model_dir in DATASETS:
+        for label, inventory_path, model_dir in datasets:
             report[label], family_by_qwen = check_dataset(label, inventory_path, model_dir, work)
 
         # --- Default (no --lora-scope) must equal the historical all-family run
-        label, inventory_path, model_dir = DATASETS[0]
+        label, inventory_path, model_dir = datasets[0]
         inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
         family_by_name = {item["name"]: item["family"] for item in inventory["targets"]}
         names = [item["name"] for item in inventory["targets"]]
@@ -261,7 +274,7 @@ def main():
         }
 
         # --- Preflight catches a prefix mismatch (modern inventory, legacy model)
-        qwen_model = DATASETS[0][2]
+        qwen_model = datasets[0][2]
         synthetic = work / "mismatched_inventory.json"
         sha = __import__("hashlib").sha256((qwen_model / "config.json").read_bytes()).hexdigest()
         synthetic.write_text(json.dumps({
@@ -275,7 +288,7 @@ def main():
                 {"name": "model.visual.merger.mlp.0", "family": "merger"},
             ],
         }) + "\n", encoding="utf-8")
-        qwen_names = [item["name"] for item in json.loads(DATASETS[0][1].read_text(encoding="utf-8"))["targets"]]
+        qwen_names = [item["name"] for item in json.loads(datasets[0][1].read_text(encoding="utf-8"))["targets"]]
         try:
             run_trainer(qwen_names, qwen_model, synthetic, "language", work / "preflight")
             report["preflight"] = "NO ERROR RAISED (unexpected)"

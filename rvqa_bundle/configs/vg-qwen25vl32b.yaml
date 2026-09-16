@@ -1,32 +1,33 @@
-# PLACEHOLDER - do not launch until >=3 free GPUs are available (32B bf16 needs
-# model parallelism; the current trainer uses device_map={"":0} = one GPU per
-# process, so this is not yet runnable as-is). Kept one command away for later.
+# Visual Genome + Qwen2.5-VL-32B runbook (bf16).
+# All machine-specific paths are empty on purpose; fill them in for your setup.
+# The 32B checkpoint needs model parallelism: pass `--gpus <id,id,...>` to the
+# trainer once enough GPUs are available.
+
 source:
-  pipeline_root: /data/wenjt/reasoningvqa_bench/pipeline/pipelines
+  pipeline_root: ""
 
 output:
-  experiment_root: /data/wenjt/reasoningvqa_bench/runs/vg-qwen25vl32b
+  experiment_root: ""
 
 runtime:
-  # Qwen2.5-VL legacy module prefixes require transformers 4.49.0.
-  python: /data/wenjt/conda_envs/videoespresso-common/bin/python
+  python: ""
 
 model:
   backend: qwen_vl
-  checkpoint: /data/wenjt/models/llm_models/Qwen2.5-VL-32B-Instruct
-  inventory: /data/wenjt/reasoningvqa_bench/inventories/qwen25vl32b-instruct.json
+  checkpoint: ""
+  inventory: ""
 
 datasets:
   sources:
     - name: visual-genome-train
       adapter: visual_genome
-      input: /data/wenjt/reasoningvqa_bench/data/visual_genome/train.english.jsonl
-      image_root: /data/wenjt/reasoningvqa_subsets/visual_genome/images
+      input: ""
+      image_root: ""
       split: train
     - name: visual-genome-dev
       adapter: visual_genome
-      input: /data/wenjt/reasoningvqa_bench/data/visual_genome/eval.english.jsonl
-      image_root: /data/wenjt/reasoningvqa_subsets/visual_genome/images
+      input: ""
+      image_root: ""
       split: dev
   manifests:
     - name: train
@@ -40,7 +41,7 @@ actions:
     - name: train-canonical-sft
       operation: canonical_sft
       env:
-        CUDA_VISIBLE_DEVICES: "8"
+        CUDA_VISIBLE_DEVICES: "0"
         TRANSFORMERS_OFFLINE: "1"
       args:
         - --model
@@ -58,7 +59,7 @@ actions:
     - name: evaluate-canonical
       operation: canonical_generation
       env:
-        CUDA_VISIBLE_DEVICES: "8"
+        CUDA_VISIBLE_DEVICES: "0"
         TRANSFORMERS_OFFLINE: "1"
       args:
         - --manifest

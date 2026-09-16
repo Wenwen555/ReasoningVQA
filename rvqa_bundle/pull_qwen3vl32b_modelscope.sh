@@ -32,7 +32,8 @@
 # =============================================================================
 set -uo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/home/ma-user/work/rvqa}"
+# REPO_ROOT defaults to empty; export it for your machine.
+REPO_ROOT="${REPO_ROOT:-}"
 DEST="${DEST:-$REPO_ROOT/llm_models/Qwen3-VL-32B-Instruct}"
 MS_MODEL="${MS_MODEL:-Qwen/Qwen3-VL-32B-Instruct}"
 MS_REV="${MS_REV:-master}"

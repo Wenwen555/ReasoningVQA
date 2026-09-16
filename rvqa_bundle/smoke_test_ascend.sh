@@ -26,13 +26,14 @@
 # =============================================================================
 set -uo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/home/ma-user/work/rvqa}"
+# All roots default to empty; export them for your machine.
+REPO_ROOT="${REPO_ROOT:-}"
 ENV_ROOT="${ENV_ROOT:-$REPO_ROOT/conda_envs}"
 BENCH="$REPO_ROOT/reasoningvqa_bench"
 PIPELINE="$BENCH/pipeline"
 PY="$ENV_ROOT/videoespresso-common/bin/python"
 CFG="$BENCH/configs/vg-qwen25vl7b.yaml"
-MODEL="${ASCEND_SMOKE_MODEL:-/home/ma-user/work/rvqa/llm_models/Qwen2.5-VL-7B-Instruct}"
+MODEL="${ASCEND_SMOKE_MODEL:-}"
 
 if [[ -f /usr/local/Ascend/ascend-toolkit/set_env.sh ]]; then
   # shellcheck disable=SC1091

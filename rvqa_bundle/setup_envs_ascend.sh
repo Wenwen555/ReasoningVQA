@@ -41,9 +41,10 @@
 # =============================================================================
 set -euo pipefail
 
-CONDA_BASE="${CONDA_BASE:-/home/ma-user/anaconda3}"
-BASE_ENV="${BASE_ENV:-$CONDA_BASE/envs/PyTorch-2.7.1}"
-ENV_ROOT="${1:-/home/ma-user/work/rvqa/conda_envs}"
+# All roots default to empty; export them for your machine.
+CONDA_BASE="${CONDA_BASE:-}"
+BASE_ENV="${BASE_ENV:-}"
+ENV_ROOT="${1:-${ENV_ROOT:-}}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REQ="$HERE/requirements"
 PY_VER=3.11

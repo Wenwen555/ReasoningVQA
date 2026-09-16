@@ -7,26 +7,26 @@ A row is DROPPED when either:
   2. NON-ENGLISH: the gold answer (``answers[correct.index(1)]``) normalizes to
      the empty string under the canonical scorer normalizer.
 
-The normalizer is copied VERBATIM from the surviving scorer at
-``/data/wenjt/reasoningvqa_bench/scoring/score_predictions.py``
-(``normalize_text``, itself ported verbatim from
-``evaluate_reasonvqa_openended_qwen.py`` / ``_mc_qwen.py``).
+The normalizer is copied VERBATIM from ``scoring/score_predictions.py``
+(``normalize_text``, itself ported verbatim from the canonical open-ended /
+MC scorers).
 
 Usage:
     python3 filter_english_rows.py \
-        --input  /data/wenjt/reasoningvqa_subsets/inaturalist/train.jsonl \
-        --output /data/wenjt/reasoningvqa_bench/data/inaturalist/train.english.jsonl \
-        --report /data/wenjt/reasoningvqa_bench/data/inaturalist/train.english.report.json \
+        --input  /path/to/train.jsonl \
+        --output /path/to/train.english.jsonl \
+        --report /path/to/train.english.report.json \
         [--examples 8]
 
-The script never writes to the input path and never touches
-``/data/wenjt/reasoningvqa_subsets/``.
+The script never writes to the input path. Pass ``--protect-write-prefix`` (or
+set ``RVQA_PROTECTED_WRITE_PREFIX``) to refuse writes under a read-only tree.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -153,12 +153,19 @@ def main() -> None:
     ap.add_argument("--output", required=True, type=Path, help="filtered jsonl output")
     ap.add_argument("--report", required=True, type=Path, help="JSON report path")
     ap.add_argument("--examples", type=int, default=8, help="examples to embed (default 8)")
+    ap.add_argument(
+        "--protect-write-prefix",
+        default=os.environ.get("RVQA_PROTECTED_WRITE_PREFIX", ""),
+        help="refuse to write under this path prefix (optional safety guard)",
+    )
     args = ap.parse_args()
 
-    # Safety: never write into the read-only subsets tree.
-    for p in (args.output, args.report):
-        if "/reasoningvqa_subsets/" in str(p.resolve()):
-            raise SystemExit(f"refusing to write into read-only subsets tree: {p}")
+    # Optional safety guard against writing into a read-only tree.
+    if args.protect_write_prefix:
+        protected = Path(args.protect_write_prefix).resolve()
+        for p in (args.output, args.report):
+            if protected in p.resolve().parents or p.resolve() == protected:
+                raise SystemExit(f"refusing to write under protected prefix: {p}")
 
     report = run(args.input, args.output, args.report, args.examples)
 

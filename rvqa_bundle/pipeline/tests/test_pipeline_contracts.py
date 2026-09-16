@@ -17,7 +17,13 @@ class PipelineContracts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.config = load_config(ROOT / "configs" / "example_pipeline.yaml")
+        # The published example config ships with empty machine-specific paths;
+        # fill them with local stand-ins so the contracts can be exercised.
         cls.config["source"]["pipeline_root"] = str(ROOT / "pipelines")
+        cls.config["output"]["experiment_root"] = str(ROOT / ".pytest-experiment")
+        cls.config["runtime"]["python"] = sys.executable
+        cls.config["model"]["checkpoint"] = "/models/Qwen3-VL-8B-Instruct"
+        cls.config["model"]["inventory"] = str(ROOT / ".pytest-inventory.json")
         cls.backend = validate_config(cls.config)
 
     def test_registered_backend(self):
@@ -39,7 +45,7 @@ class PipelineContracts(unittest.TestCase):
 
     def test_model_placeholders_expand(self):
         command = build_commands(self.config, self.backend, "train")[0]
-        self.assertIn("/data/llm_models/Qwen3-VL-8B-Instruct", command.argv)
+        self.assertIn("/models/Qwen3-VL-8B-Instruct", command.argv)
         self.assertEqual(command.env["CUDA_VISIBLE_DEVICES"], "0")
 
     def test_grpo_is_rejected(self):
@@ -92,6 +98,12 @@ class PipelineContracts(unittest.TestCase):
         self.assertNotIn("/data/wenjt", template)
         config = load_config(ROOT / "configs" / "pipeline.template.yaml")
         config["source"]["pipeline_root"] = str(ROOT / "pipelines")
+        config["output"]["experiment_root"] = str(ROOT / ".pytest-experiment")
+        config["runtime"]["python"] = sys.executable
+        config["model"]["checkpoint"] = str(ROOT / ".pytest-model")
+        config["model"]["inventory"] = str(ROOT / ".pytest-inventory.json")
+        for source in config["datasets"]["sources"]:
+            source["input"] = str(ROOT / "datasets" / f"{source['name']}.jsonl")
         backend = validate_config(config)
         prepare = build_commands(config, backend, "prepare")
         self.assertEqual(len(prepare), 16)

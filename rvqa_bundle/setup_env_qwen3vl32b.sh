@@ -16,11 +16,12 @@
 # =============================================================================
 set -euo pipefail
 
-CONDA_BASE="${CONDA_BASE:-/home/ma-user/anaconda3}"
-BASE_ENV="${BASE_ENV:-$CONDA_BASE/envs/PyTorch-2.7.1}"
-ENV_ROOT="${ENV_ROOT:-/home/ma-user/work/rvqa/conda_envs}"
+# All roots default to empty; export them for your machine.
+CONDA_BASE="${CONDA_BASE:-}"
+BASE_ENV="${BASE_ENV:-}"
+ENV_ROOT="${ENV_ROOT:-}"
 NAME="${NAME:-vvqa4-qwen3vl32b}"
-MODEL_DIR="${MODEL_DIR:-/home/ma-user/work/rvqa/llm_models/Qwen3-VL-32B-Instruct}"
+MODEL_DIR="${MODEL_DIR:-}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REQ="$HERE/requirements/requirements-ascend-qwen3vl32b.txt"
 PIP_INDEX="https://repo.huaweicloud.com/repository/pypi/simple"
