@@ -1,30 +1,33 @@
+# Visual Genome + Qwen2.5-VL-7B runbook.
+# All machine-specific paths are empty on purpose; fill them in for your setup.
+
 source:
-  # Root that contains prepare/ train/ evaluate/ (the bench "pipelines" dir).
-  pipeline_root: /data/wenjt/reasoningvqa_bench/pipeline/pipelines
+  # Directory that contains prepare/, train/, evaluate/.
+  pipeline_root: ""
 
 output:
-  experiment_root: /data/wenjt/reasoningvqa_bench/runs/vg-qwen25vl7b
+  experiment_root: ""
 
 runtime:
-  # transformers 4.49.0 -> matches the legacy model.layers.* / visual.* inventory.
-  python: /data/wenjt/conda_envs/videoespresso-common/bin/python
+  # Python interpreter matching the model's transformers version.
+  python: ""
 
 model:
   backend: qwen_vl
-  checkpoint: /data/llm_models/Qwen2.5-VL-7B-Instruct
-  inventory: /data/wenjt/reasoningvqa_bench/inventories/qwen25vl7b-instruct.json
+  checkpoint: ""
+  inventory: ""
 
 datasets:
   sources:
     - name: visual-genome-train
       adapter: visual_genome
-      input: /data/wenjt/reasoningvqa_bench/data/visual_genome/train.english.jsonl
-      image_root: /data/wenjt/reasoningvqa_subsets/visual_genome/images
+      input: ""
+      image_root: ""
       split: train
     - name: visual-genome-dev
       adapter: visual_genome
-      input: /data/wenjt/reasoningvqa_bench/data/visual_genome/eval.english.jsonl
-      image_root: /data/wenjt/reasoningvqa_subsets/visual_genome/images
+      input: ""
+      image_root: ""
       split: dev
   manifests:
     - name: train
@@ -38,7 +41,7 @@ actions:
     - name: train-canonical-sft
       operation: canonical_sft
       env:
-        CUDA_VISIBLE_DEVICES: "8"
+        CUDA_VISIBLE_DEVICES: "0"
         TRANSFORMERS_OFFLINE: "1"
       args:
         - --model
@@ -56,7 +59,7 @@ actions:
     - name: evaluate-canonical
       operation: canonical_generation
       env:
-        CUDA_VISIBLE_DEVICES: "8"
+        CUDA_VISIBLE_DEVICES: "0"
         TRANSFORMERS_OFFLINE: "1"
       args:
         - --manifest

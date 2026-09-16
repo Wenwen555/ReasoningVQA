@@ -1,16 +1,32 @@
+# Example structured-GLDv2 run for the public pipeline.
+#
+# Every machine-specific value below is an empty string on purpose. Fill in the
+# paths for your own setup before running:
+#
+#   source.pipeline_root  directory that contains prepare/, train/, evaluate/
+#   output.experiment_root  where manifests, checkpoints and predictions go
+#   runtime.python        python interpreter of the training environment
+#   model.checkpoint      local model directory
+#   model.inventory       LoRA target inventory built by
+#                         tools/build_model_inventory.py
+#   args                  dataset / inventory paths consumed by the steps
+#
+# `run_pipeline.py ... --dry-run` prints the rendered commands without touching
+# the filesystem, which is the quickest way to check your edits.
+
 source:
-  pipeline_root: pipelines
+  pipeline_root: ""
 
 output:
-  experiment_root: /data/wenjt/ReasoningVQA/runs/example-public-pipeline
+  experiment_root: ""
 
 runtime:
-  python: /data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python
+  python: ""
 
 model:
   backend: qwen_vl
-  checkpoint: /data/llm_models/Qwen3-VL-8B-Instruct
-  inventory: /data/wenjt/ReasoningVQA/experiments/RVQA-REASONVQA-GLDV2-PAPER-REIMPL-20260802/runs/multimodel-v024-20260804/inventory-qwen3vl8b-instruct-v1.json
+  checkpoint: ""
+  inventory: ""
 
 actions:
   prepare:
@@ -18,13 +34,13 @@ actions:
       script: prepare/build_structured_reasoning.py
       args:
         - --groups
-        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/gldv2/train.jsonl
+        - ""
         - --formal-train
-        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/wikidata/train.jsonl
+        - ""
         - --formal-eval
-        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/wikidata/eval.jsonl
+        - ""
         - --third-view
-        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/gldv2/eval.jsonl
+        - ""
         - --output
         - "{experiment_root}/data"
     - name: validate-structured-reasoning-data
@@ -35,9 +51,9 @@ actions:
         - --dev
         - "{experiment_root}/data/dev.jsonl"
         - --formal-train
-        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/wikidata/train.jsonl
+        - ""
         - --formal-eval
-        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/wikidata/eval.jsonl
+        - ""
         - --output
         - "{experiment_root}/data/independent_validation.json"
 

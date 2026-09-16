@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import random
 import re
 import time
@@ -13,14 +14,17 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-DEFAULT_MODEL_PATH = Path("/home/ma-user/work/vlm/Qwen2.5-VL-7B-Instruct")
-DEFAULT_VAL_JSONL = Path(
-    "/home/ma-user/work/reasoningVQA/managed/40_llamafactory/data/val/"
-    "val_2k_seed20260622.jsonl"
-)
-DEFAULT_OUTPUT_ROOT = Path(
-    "/home/ma-user/work/reasoningVQA/managed/50_training_results/eval_mc"
-)
+def _env_path(name: str) -> Path | None:
+    """Return ``Path(env[name])`` when set, else ``None``."""
+    value = os.environ.get(name, "").strip()
+    return Path(value) if value else None
+
+
+# All defaults are empty on purpose. Set the matching environment variable or
+# pass the CLI flag explicitly.
+DEFAULT_MODEL_PATH = _env_path("RVQA_MODEL_PATH")
+DEFAULT_VAL_JSONL = _env_path("RVQA_VAL_JSONL")
+DEFAULT_OUTPUT_ROOT = _env_path("RVQA_MC_OUTPUT_ROOT")
 
 
 @dataclass(frozen=True)
@@ -483,6 +487,12 @@ def load_model_and_processor(args: argparse.Namespace, device: str) -> tuple[Any
 
 def main() -> None:
     args = parse_args()
+    if args.model is None:
+        raise SystemExit("--model is required (or set RVQA_MODEL_PATH)")
+    if args.vqa_jsonl is None:
+        raise SystemExit("--vqa-jsonl is required (or set RVQA_VAL_JSONL)")
+    if args.output_dir is None and DEFAULT_OUTPUT_ROOT is None:
+        raise SystemExit("--output-dir is required (or set RVQA_MC_OUTPUT_ROOT)")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_tag = "adapter" if args.adapter else "baseline"
     output_dir = args.output_dir or (DEFAULT_OUTPUT_ROOT / f"{model_tag}_{timestamp}")

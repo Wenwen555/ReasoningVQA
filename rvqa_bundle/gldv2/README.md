@@ -1,6 +1,6 @@
 # ReasonVQA subset — GLDv2
 
-子集由官方 ReasonVQA (`/data/wenjt/reasoningvqa_official`) 构建。
+子集由官方 ReasonVQA 数据集构建。
 
 - Source: `GLDv2`
 - Train rows: 5000 / target 5000

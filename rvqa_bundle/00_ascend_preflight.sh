@@ -32,9 +32,10 @@ BASE_CHIP="Ascend910B4"
 BASE_CHIP_COUNT=4
 BASE_HBM_MB=32768
 BASE_HBM_USABLE_MB=29696        # ~29 GB after ~2.9 GB platform reservation
-BASE_CANN_DIR="/usr/local/Ascend/ascend-toolkit/8.3.RC1"
-BASE_PYTHON="/home/ma-user/anaconda3/envs/PyTorch-2.7.1/bin/python"
-BASE_WORK_DIR="/home/ma-user/work"
+# All roots default to empty; export them for your machine.
+BASE_CANN_DIR="${BASE_CANN_DIR:-}"
+BASE_PYTHON="${BASE_PYTHON:-}"
+BASE_WORK_DIR="${BASE_WORK_DIR:-}"
 BASE_WORK_MIN_GB=150
 
 # --- helpers ----------------------------------------------------------------

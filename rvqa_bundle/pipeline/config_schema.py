@@ -38,7 +38,7 @@ def validate_pipeline_config(config):
                 raise ValueError(f"{prefix} must be a mapping")
             for key in ("name", "adapter", "input"):
                 _nonempty_string(source_config, key, f"{prefix}.{key}")
-            if "image_root" in source_config:
+            if source_config.get("image_root"):
                 _nonempty_string(source_config, "image_root", f"{prefix}.image_root")
             if source_config["adapter"] not in {"inaturalist", "gldv2", "visual_genome"}:
                 raise ValueError(f"{prefix}.adapter is unsupported: {source_config['adapter']!r}")

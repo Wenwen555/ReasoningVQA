@@ -1,32 +1,34 @@
-# PLACEHOLDER - do not launch until >=2 free GPUs are available (32B AWQ needs
-# model parallelism; the current trainer uses device_map={"":0} = one GPU per
-# process, so this is not yet runnable as-is). Kept one command away for later.
+# Visual Genome + Qwen3-VL-32B-AWQ runbook.
+# All machine-specific paths are empty on purpose; fill them in for your setup.
+# AWQ 32B needs model parallelism: pass `--gpus <id,id,...>` to the trainer once
+# enough GPUs are available.
+
 source:
-  pipeline_root: /data/wenjt/reasoningvqa_bench/pipeline/pipelines
+  pipeline_root: ""
 
 output:
-  experiment_root: /data/wenjt/reasoningvqa_bench/runs/vg-qwen3vl32b-awq
+  experiment_root: ""
 
 runtime:
-  # Qwen3-VL modern model.language_model.* prefixes + AWQ require transformers 5.x.
-  python: /data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python
+  # Qwen3-VL modern module prefixes + AWQ require a recent transformers.
+  python: ""
 
 model:
   backend: qwen_vl
-  checkpoint: /data/llm_models/Qwen3-VL-32B-Instruct-AWQ
-  inventory: /data/wenjt/reasoningvqa_bench/inventories/qwen3vl32b-awq.json
+  checkpoint: ""
+  inventory: ""
 
 datasets:
   sources:
     - name: visual-genome-train
       adapter: visual_genome
-      input: /data/wenjt/reasoningvqa_bench/data/visual_genome/train.english.jsonl
-      image_root: /data/wenjt/reasoningvqa_subsets/visual_genome/images
+      input: ""
+      image_root: ""
       split: train
     - name: visual-genome-dev
       adapter: visual_genome
-      input: /data/wenjt/reasoningvqa_bench/data/visual_genome/eval.english.jsonl
-      image_root: /data/wenjt/reasoningvqa_subsets/visual_genome/images
+      input: ""
+      image_root: ""
       split: dev
   manifests:
     - name: train
@@ -40,7 +42,7 @@ actions:
     - name: train-canonical-sft
       operation: canonical_sft
       env:
-        CUDA_VISIBLE_DEVICES: "8"
+        CUDA_VISIBLE_DEVICES: "0"
         TRANSFORMERS_OFFLINE: "1"
       args:
         - --model
@@ -58,7 +60,7 @@ actions:
     - name: evaluate-canonical
       operation: canonical_generation
       env:
-        CUDA_VISIBLE_DEVICES: "8"
+        CUDA_VISIBLE_DEVICES: "0"
         TRANSFORMERS_OFFLINE: "1"
       args:
         - --manifest

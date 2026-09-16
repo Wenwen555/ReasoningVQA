@@ -1,45 +1,58 @@
+# Portable three-source (iNaturalist + GLDv2 + Visual Genome) template.
+#
+# Every machine-specific value below is an empty string on purpose. Fill in the
+# paths for your own setup before running; `--dry-run` renders the full command
+# list without touching the filesystem.
+
 source:
-  pipeline_root: /code/reasoningvqa/pipelines
+  # Directory that contains prepare/, train/, evaluate/.
+  pipeline_root: ""
+
 output:
-  experiment_root: /experiments/reasoningvqa-unified
+  # Where canonical manifests, training output and predictions are written.
+  experiment_root: ""
+
 runtime:
-  python: /envs/reasoningvqa/bin/python
+  # Python interpreter of the training environment.
+  python: ""
+
 model:
   backend: qwen_vl
-  checkpoint: /models/qwen-vl-checkpoint
-  inventory: /models/qwen-vl-inventory.json
+  # Local model directory and its LoRA target inventory.
+  checkpoint: ""
+  inventory: ""
 
 datasets:
   sources:
     - name: inaturalist-train
       adapter: inaturalist
-      input: /datasets/inaturalist/train.jsonl
-      image_root: /datasets/inaturalist/images
+      input: ""
+      image_root: ""
       split: train
     - name: inaturalist-dev
       adapter: inaturalist
-      input: /datasets/inaturalist/dev.jsonl
-      image_root: /datasets/inaturalist/images
+      input: ""
+      image_root: ""
       split: dev
     - name: gldv2-train
       adapter: gldv2
-      input: /datasets/gldv2/train.jsonl
-      image_root: /datasets/gldv2/images
+      input: ""
+      image_root: ""
       split: train
     - name: gldv2-dev
       adapter: gldv2
-      input: /datasets/gldv2/dev.jsonl
-      image_root: /datasets/gldv2/images
+      input: ""
+      image_root: ""
       split: dev
     - name: visual-genome-train
       adapter: visual_genome
-      input: /datasets/visual-genome/train.jsonl
-      image_root: /datasets/visual-genome/images
+      input: ""
+      image_root: ""
       split: train
     - name: visual-genome-dev
       adapter: visual_genome
-      input: /datasets/visual-genome/dev.jsonl
-      image_root: /datasets/visual-genome/images
+      input: ""
+      image_root: ""
       split: dev
   manifests:
     - name: train

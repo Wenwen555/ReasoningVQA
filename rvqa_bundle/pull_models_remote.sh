@@ -35,8 +35,9 @@
 # =============================================================================
 set -uo pipefail
 
-REPO_ROOT="${REPO_ROOT:-/home/ma-user/work/rvqa}"
-PY="${PY:-/home/ma-user/anaconda3/envs/PyTorch-2.7.1/bin/python}"
+# All roots default to empty; export them for your machine.
+REPO_ROOT="${REPO_ROOT:-}"
+PY="${PY:-}"
 HF_BASE="${HF_BASE:-https://huggingface.co}"
 HF_TOKEN="${HF_TOKEN:-}"
 

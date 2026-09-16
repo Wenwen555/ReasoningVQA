@@ -1,28 +1,33 @@
+# iNaturalist + Qwen2.5-VL-7B runbook.
+# All machine-specific paths are empty on purpose; fill them in for your setup.
+
 source:
-  pipeline_root: /data/wenjt/reasoningvqa_bench/pipeline/pipelines
+  # Directory that contains prepare/, train/, evaluate/.
+  pipeline_root: ""
 
 output:
-  experiment_root: /data/wenjt/reasoningvqa_bench/runs/inat-qwen25vl7b
+  experiment_root: ""
 
 runtime:
-  python: /data/wenjt/conda_envs/videoespresso-common/bin/python
+  # Python interpreter matching the model's transformers version.
+  python: ""
 
 model:
   backend: qwen_vl
-  checkpoint: /data/llm_models/Qwen2.5-VL-7B-Instruct
-  inventory: /data/wenjt/reasoningvqa_bench/inventories/qwen25vl7b-instruct.json
+  checkpoint: ""
+  inventory: ""
 
 datasets:
   sources:
     - name: inaturalist-train
       adapter: inaturalist
-      input: /data/wenjt/reasoningvqa_bench/data/inaturalist/train.english.jsonl
-      image_root: /data/wenjt/reasoningvqa_subsets/inaturalist/images
+      input: ""
+      image_root: ""
       split: train
     - name: inaturalist-dev
       adapter: inaturalist
-      input: /data/wenjt/reasoningvqa_bench/data/inaturalist/eval.english.jsonl
-      image_root: /data/wenjt/reasoningvqa_subsets/inaturalist/images
+      input: ""
+      image_root: ""
       split: dev
   manifests:
     - name: train
@@ -36,7 +41,7 @@ actions:
     - name: train-canonical-sft
       operation: canonical_sft
       env:
-        CUDA_VISIBLE_DEVICES: "8"
+        CUDA_VISIBLE_DEVICES: "0"
         TRANSFORMERS_OFFLINE: "1"
       args:
         - --model
@@ -54,7 +59,7 @@ actions:
     - name: evaluate-canonical
       operation: canonical_generation
       env:
-        CUDA_VISIBLE_DEVICES: "8"
+        CUDA_VISIBLE_DEVICES: "0"
         TRANSFORMERS_OFFLINE: "1"
       args:
         - --manifest

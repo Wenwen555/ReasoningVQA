@@ -40,9 +40,10 @@ float32 round-off (~1e-7).
 Usage
 -----
     python score_predictions.py \
-        --eval-jsonl  /data/wenjt/reasoningvqa_subsets/inaturalist/eval.jsonl \
+        --eval-jsonl  /path/to/eval.jsonl \
         --predictions-jsonl /path/to/predictions.jsonl \
-        --output-dir  /path/to/out
+        --output-dir  /path/to/out \
+        --model-path /path/to/all-MiniLM-L6-v2
 """
 
 from __future__ import annotations
@@ -52,6 +53,7 @@ import hashlib
 import importlib.util
 import json
 import math
+import os
 import re
 import sys
 from collections import OrderedDict
@@ -63,19 +65,20 @@ from typing import Any, Callable, Iterable
 # Canonical metric functions -- attempt import, else verbatim port
 # --------------------------------------------------------------------------- #
 
-CANONICAL_OPEN = Path(
-    "/home/wenjt/project/.worktrees/AscendDataForge-stage3-clean/AscendDataForge/"
-    "scripts/evaluation/evaluate_reasonvqa_openended_qwen.py"
-)
-CANONICAL_MC = Path(
-    "/home/wenjt/project/.worktrees/AscendDataForge-stage3-clean/AscendDataForge/"
-    "scripts/evaluation/evaluate_reasonvqa_mc_qwen.py"
-)
+def _optional_env_path(name: str) -> Path | None:
+    """Return ``Path(env[name])`` when the variable is set, else ``None``."""
+    value = os.environ.get(name, "").strip()
+    return Path(value) if value else None
 
-DEFAULT_MODEL_PATH = Path(
-    "/data/wenjt/projects/ReasoningVQA/experiments/"
-    "RVQA-REASONVQA-GLDV2-PAPER-REIMPL-20260802/models/all-MiniLM-L6-v2"
-)
+
+# Optional canonical metric modules. Leave both unset to use the byte-faithful
+# verbatim ports embedded in this file.
+CANONICAL_OPEN = _optional_env_path("RVQA_CANONICAL_OPEN")
+CANONICAL_MC = _optional_env_path("RVQA_CANONICAL_MC")
+
+# Local sentence-embedding model (all-MiniLM-L6-v2 layout). Override with
+# ``--model-path`` or the ``RVQA_EMBED_MODEL`` environment variable.
+DEFAULT_MODEL_PATH = _optional_env_path("RVQA_EMBED_MODEL")
 
 PRIMARY_THRESHOLD = 0.80
 THRESHOLDS = (0.70, 0.75, 0.80, 0.85, 0.90)
@@ -89,8 +92,8 @@ PREDICTION_FIELDS = ("open_raw", "raw_output", "raw_prediction", "prediction", "
 JOIN_KEYS = ("question_id", "sample_id", "id", "qid")
 
 
-def _load_module_from_path(name: str, path: Path) -> Any | None:
-    if not path.exists():
+def _load_module_from_path(name: str, path: Path | None) -> Any | None:
+    if path is None or not path.exists():
         return None
     try:
         spec = importlib.util.spec_from_file_location(name, path)
@@ -713,6 +716,10 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(f"eval jsonl not found: {args.eval_jsonl}")
     if not args.predictions_jsonl.exists():
         raise SystemExit(f"predictions jsonl not found: {args.predictions_jsonl}")
+    if args.model_path is None:
+        raise SystemExit(
+            "no sentence-embedding model configured; pass --model-path or set RVQA_EMBED_MODEL"
+        )
     if not args.model_path.exists():
         raise SystemExit(f"semantic model path not found: {args.model_path}")
     result = score(args)
