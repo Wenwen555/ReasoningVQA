@@ -39,8 +39,7 @@ rvqa_bundle/
 ├── scoring/                  # score-only harness
 ├── scoring_extra/            # canonical MC metric source
 ├── tools/                    # data filtering utilities
-├── requirements/             # environment pins (CUDA / Ascend)
-└── gldv2/                    # GLDv2 subset notes and stats
+└── requirements/             # environment pins (CUDA / Ascend)
 ```
 
 ## Installation
