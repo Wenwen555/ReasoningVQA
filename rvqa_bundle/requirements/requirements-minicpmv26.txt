@@ -1,0 +1,53 @@
+# #############################################################################
+# !! WARNING — CUDA / x86_64 ONLY !!
+# 仅适用于源机 x86_64 + CUDA 12.2，勿在 Ascend 目标机使用。
+# 请改用 requirements/requirements-ascend-minicpmv26.txt（Ascend snt9b / aarch64）。
+# #############################################################################
+# =============================================================================
+# ReasoningVQA bench — MiniCPM-V-2_6 environment
+# =============================================================================
+# Covers: configs/vg-minicpmv26.yaml  (currently marked PLACEHOLDER)
+# Source env: /data/wenjt/conda_envs/vvqa4-minicpm-v26  -> Python 3.10.20
+#
+# WHY A SEPARATE ENV: MiniCPM-V-2_6 is loaded through the legacy
+# AutoModel + trust_remote_code path and pins transformers 4.40.0, which is
+# incompatible with the 4.49.0 required by the Qwen2.5-VL inventories.
+#
+#   conda create -y -n rvqa-minicpm python=3.10
+#   conda activate rvqa-minicpm
+#   pip install -r requirements-minicpmv26.txt --extra-index-url https://download.pytorch.org/whl/cu121
+#
+# BLOCKER CARRIED OVER (from the config comment): the origin box could not make
+# MiniCPM-V-2_6's chat template work. This env reproduces the origin state; it
+# does not fix the blocker. Do not launch this config expecting it to run.
+# =============================================================================
+
+torch==2.5.1+cu121
+torchvision==0.20.1+cu121
+
+transformers==4.40.0
+tokenizers==0.19.1
+accelerate==1.13.0
+peft==0.10.0
+safetensors==0.7.0
+sentencepiece==0.1.99
+regex==2026.4.4
+einops==0.8.2
+numpy==2.2.6
+pillow==12.2.0
+
+PyYAML==6.0.3
+packaging==26.0
+protobuf==6.32.0
+requests==2.33.1
+tqdm==4.67.3
+
+scipy==1.15.3
+scikit-learn==1.7.2
+
+qwen-vl-utils==0.0.14
+ninja==1.13.0
+psutil==7.2.2
+av==17.0.1
+
+# Optional (see requirements.txt notes): flash-attn==2.7.4.post1, huggingface-hub==0.29.3

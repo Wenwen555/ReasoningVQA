@@ -1,0 +1,11 @@
+// Synthetic predictions for the 5 scored rows.
+// Row-by-row intent (question_id -> expected behaviour):
+//   4626818  exact-correct            open_exact=1 (gold "Sápmi", normalized "sapmi")
+//   4626819  substring-correct        open_exact=0, open_substring=1 (gold "Europe")
+//   4626820  fuzzy-correct only       open_exact=0, open_substring=0, fuzzy_proxy=1
+//            (gold "388350" vs "38835", SequenceMatcher ratio = 0.909)
+//   4627448  semantic-only            all lexical=0, cosine≈0.87 -> semantic_correct_0_80=1
+//            (gold "Balkans" vs "the Balkan Peninsula")
+//   4627449  wrong                    every metric 0 (gold "Germany" vs "France")
+// Field name is varied across rows (open_raw / raw_prediction / prediction) to
+// exercise the prediction-field resolution order documented in score_predictions.py.

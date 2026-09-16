@@ -1,0 +1,87 @@
+source:
+  pipeline_root: pipelines
+
+output:
+  experiment_root: /data/wenjt/ReasoningVQA/runs/example-public-pipeline
+
+runtime:
+  python: /data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python
+
+model:
+  backend: qwen_vl
+  checkpoint: /data/llm_models/Qwen3-VL-8B-Instruct
+  inventory: /data/wenjt/ReasoningVQA/experiments/RVQA-REASONVQA-GLDV2-PAPER-REIMPL-20260802/runs/multimodel-v024-20260804/inventory-qwen3vl8b-instruct-v1.json
+
+actions:
+  prepare:
+    - name: build-structured-reasoning
+      script: prepare/build_structured_reasoning.py
+      args:
+        - --groups
+        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/gldv2/train.jsonl
+        - --formal-train
+        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/wikidata/train.jsonl
+        - --formal-eval
+        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/wikidata/eval.jsonl
+        - --third-view
+        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/gldv2/eval.jsonl
+        - --output
+        - "{experiment_root}/data"
+    - name: validate-structured-reasoning-data
+      script: prepare/validate_structured_reasoning.py
+      args:
+        - --train
+        - "{experiment_root}/data/train.jsonl"
+        - --dev
+        - "{experiment_root}/data/dev.jsonl"
+        - --formal-train
+        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/wikidata/train.jsonl
+        - --formal-eval
+        - /data/wenjt/ReasoningVQA/datasets/reasoningvqa-structured-reasoning-v1/frozen-20260806b/sources/wikidata/eval.jsonl
+        - --output
+        - "{experiment_root}/data/independent_validation.json"
+
+  train:
+    - name: train-structured-sft
+      operation: structured_sft
+      env:
+        CUDA_VISIBLE_DEVICES: "0"
+        TRANSFORMERS_OFFLINE: "1"
+      args:
+        - --model
+        - "{model}"
+        - --manifest
+        - "{experiment_root}/data/train.jsonl"
+        - --inventory
+        - "{inventory}"
+        - --output
+        - "{experiment_root}/train"
+
+  evaluate:
+    - name: evaluate-correct-image
+      operation: structured_generation
+      env:
+        CUDA_VISIBLE_DEVICES: "0"
+        TRANSFORMERS_OFFLINE: "1"
+      args:
+        - --manifest
+        - "{experiment_root}/data/dev.jsonl"
+        - --model
+        - "{model}"
+        - --adapter
+        - "{experiment_root}/train/adapter"
+        - --output
+        - "{experiment_root}/evaluation/correct-image"
+        - --mode
+        - correct-image
+    - name: validate-correct-image
+      script: evaluate/validate_predictions.py
+      args:
+        - --manifest
+        - "{experiment_root}/data/dev.jsonl"
+        - --predictions
+        - "{experiment_root}/evaluation/correct-image/predictions.scored.jsonl"
+        - --output
+        - "{experiment_root}/evaluation/correct-image/independent_validation.json"
+        - --mode
+        - correct-image

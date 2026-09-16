@@ -1,0 +1,84 @@
+source:
+  pipeline_root: /data/wenjt/reasoningvqa_bench/pipeline/pipelines
+
+output:
+  experiment_root: /data/wenjt/reasoningvqa_bench/runs/inat-qwen25vl7b
+
+runtime:
+  python: /data/wenjt/conda_envs/videoespresso-common/bin/python
+
+model:
+  backend: qwen_vl
+  checkpoint: /data/llm_models/Qwen2.5-VL-7B-Instruct
+  inventory: /data/wenjt/reasoningvqa_bench/inventories/qwen25vl7b-instruct.json
+
+datasets:
+  sources:
+    - name: inaturalist-train
+      adapter: inaturalist
+      input: /data/wenjt/reasoningvqa_bench/data/inaturalist/train.english.jsonl
+      image_root: /data/wenjt/reasoningvqa_subsets/inaturalist/images
+      split: train
+    - name: inaturalist-dev
+      adapter: inaturalist
+      input: /data/wenjt/reasoningvqa_bench/data/inaturalist/eval.english.jsonl
+      image_root: /data/wenjt/reasoningvqa_subsets/inaturalist/images
+      split: dev
+  manifests:
+    - name: train
+      inputs: [inaturalist-train]
+    - name: dev
+      inputs: [inaturalist-dev]
+
+actions:
+  prepare: []
+  train:
+    - name: train-canonical-sft
+      operation: canonical_sft
+      env:
+        CUDA_VISIBLE_DEVICES: "8"
+        TRANSFORMERS_OFFLINE: "1"
+      args:
+        - --model
+        - "{model}"
+        - --manifest
+        - "{experiment_root}/data/manifests-open/train.jsonl"
+        - --inventory
+        - "{inventory}"
+        - --output
+        - "{experiment_root}/train"
+        - --lora-scope
+        - language
+        - --trust-remote-code
+  evaluate:
+    - name: evaluate-canonical
+      operation: canonical_generation
+      env:
+        CUDA_VISIBLE_DEVICES: "8"
+        TRANSFORMERS_OFFLINE: "1"
+      args:
+        - --manifest
+        - "{experiment_root}/data/manifests-open/dev.jsonl"
+        - --answer-mode
+        - open
+        - --model
+        - "{model}"
+        - --adapter
+        - "{experiment_root}/train/adapter"
+        - --output
+        - "{experiment_root}/evaluation/correct-image"
+        - --mode
+        - correct-image
+    - name: validate-canonical-predictions
+      script: evaluate/validate_canonical_predictions.py
+      args:
+        - --manifest
+        - "{experiment_root}/data/manifests-open/dev.jsonl"
+        - --answer-mode
+        - open
+        - --predictions
+        - "{experiment_root}/evaluation/correct-image/predictions.jsonl"
+        - --output
+        - "{experiment_root}/evaluation/correct-image/independent_validation.json"
+        - --mode
+        - correct-image

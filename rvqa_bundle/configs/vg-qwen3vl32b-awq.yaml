@@ -1,0 +1,84 @@
+# PLACEHOLDER - do not launch until >=2 free GPUs are available (32B AWQ needs
+# model parallelism; the current trainer uses device_map={"":0} = one GPU per
+# process, so this is not yet runnable as-is). Kept one command away for later.
+source:
+  pipeline_root: /data/wenjt/reasoningvqa_bench/pipeline/pipelines
+
+output:
+  experiment_root: /data/wenjt/reasoningvqa_bench/runs/vg-qwen3vl32b-awq
+
+runtime:
+  # Qwen3-VL modern model.language_model.* prefixes + AWQ require transformers 5.x.
+  python: /data/wenjt/conda_envs/vvqa4-qwen-awq/bin/python
+
+model:
+  backend: qwen_vl
+  checkpoint: /data/llm_models/Qwen3-VL-32B-Instruct-AWQ
+  inventory: /data/wenjt/reasoningvqa_bench/inventories/qwen3vl32b-awq.json
+
+datasets:
+  sources:
+    - name: visual-genome-train
+      adapter: visual_genome
+      input: /data/wenjt/reasoningvqa_bench/data/visual_genome/train.english.jsonl
+      image_root: /data/wenjt/reasoningvqa_subsets/visual_genome/images
+      split: train
+    - name: visual-genome-dev
+      adapter: visual_genome
+      input: /data/wenjt/reasoningvqa_bench/data/visual_genome/eval.english.jsonl
+      image_root: /data/wenjt/reasoningvqa_subsets/visual_genome/images
+      split: dev
+  manifests:
+    - name: train
+      inputs: [visual-genome-train]
+    - name: dev
+      inputs: [visual-genome-dev]
+
+actions:
+  prepare: []
+  train:
+    - name: train-canonical-sft
+      operation: canonical_sft
+      env:
+        CUDA_VISIBLE_DEVICES: "8"
+        TRANSFORMERS_OFFLINE: "1"
+      args:
+        - --model
+        - "{model}"
+        - --manifest
+        - "{experiment_root}/data/manifests/train.jsonl"
+        - --inventory
+        - "{inventory}"
+        - --output
+        - "{experiment_root}/train"
+        - --lora-scope
+        - language
+        - --trust-remote-code
+  evaluate:
+    - name: evaluate-canonical
+      operation: canonical_generation
+      env:
+        CUDA_VISIBLE_DEVICES: "8"
+        TRANSFORMERS_OFFLINE: "1"
+      args:
+        - --manifest
+        - "{experiment_root}/data/manifests/dev.jsonl"
+        - --model
+        - "{model}"
+        - --adapter
+        - "{experiment_root}/train/adapter"
+        - --output
+        - "{experiment_root}/evaluation/correct-image"
+        - --mode
+        - correct-image
+    - name: validate-canonical-predictions
+      script: evaluate/validate_canonical_predictions.py
+      args:
+        - --manifest
+        - "{experiment_root}/data/manifests/dev.jsonl"
+        - --predictions
+        - "{experiment_root}/evaluation/correct-image/predictions.jsonl"
+        - --output
+        - "{experiment_root}/evaluation/correct-image/independent_validation.json"
+        - --mode
+        - correct-image

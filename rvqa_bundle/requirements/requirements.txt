@@ -1,0 +1,84 @@
+# #############################################################################
+# !! WARNING — CUDA / x86_64 ONLY !!
+# 仅适用于源机 x86_64 + CUDA 12.2，勿在 Ascend 目标机使用。
+# 请改用 requirements/requirements-ascend.txt（Ascend snt9b / aarch64）。
+# #############################################################################
+# =============================================================================
+# ReasoningVQA bench pipeline (workflow A) — primary environment
+# =============================================================================
+# Covers: configs/vg-qwen25vl7b.yaml, configs/inat-qwen25vl7b.yaml,
+#         configs/vg-qwen25vl32b.yaml
+# Source env on the origin box: /data/wenjt/conda_envs/videoespresso-common
+#   -> Python 3.10.20, torch 2.5.1+cu121, transformers 4.49.0
+# Verified against: origin NVIDIA driver 535.104.05 / CUDA 12.2 / RTX 3090
+#
+# Build (do NOT use plain `pip install -r`; flash-attn needs the torch index
+# and no build isolation):
+#
+#   conda create -y -n rvqa python=3.10
+#   conda activate rvqa
+#   pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121
+#
+# If the remote box has a different CUDA major version, change the
+# --extra-index-url (cu121 -> cu124/cu126) AND the two torch pins below to the
+# matching wheel, then rebuild flash-attn from source.
+# =============================================================================
+
+# --- torch stack (cu121 wheels are NOT on PyPI; the extra index above resolves) ---
+torch==2.5.1+cu121
+torchvision==0.20.1+cu121
+
+# --- model / training stack (pins matter: the LoRA inventories are keyed to
+#     transformers 4.49.0 legacy `model.layers.* / visual.*` module prefixes) ---
+transformers==4.49.0
+tokenizers==0.21.4
+accelerate==1.13.0
+peft==0.15.2
+safetensors==0.7.0
+huggingface-hub==0.29.3
+sentencepiece==0.2.1
+regex==2026.4.4
+einops==0.8.2
+numpy==2.2.6
+pillow==12.2.0
+
+# --- pipeline runtime ---
+PyYAML==6.0.3
+packaging==26.3
+protobuf==6.32.0
+requests==2.33.1
+tqdm==4.67.3
+
+# --- scoring (scoring/score_predictions.py: fuzzy + embedding metrics) ---
+scipy==1.15.3
+scikit-learn==1.7.2
+
+# --- optional but present in the origin env ---
+qwen-vl-utils==0.0.14
+ninja==1.13.0
+psutil==7.2.2
+av==17.0.1
+
+# =============================================================================
+# NOT in this file on purpose
+# =============================================================================
+# flash-attn==2.7.4.post1
+#   Origin env has it. It is NOT imported by the bench pipeline code, but
+#   transformers will auto-select it if present. Install AFTER torch, with:
+#     pip install flash-attn==2.7.4.post1 --no-build-isolation
+#   It needs ~30 min and a matching CUDA toolkit (nvcc) on the remote box.
+#   Safe to skip; the pipeline falls back to eager/SDPA attention.
+#
+# sentence-transformers
+#   score_predictions.py tries `from sentence_transformers import SentenceTransformer`
+#   inside a try/except and falls back to raw transformers + torch. The origin
+#   env does NOT have it. Leave it out to reproduce the origin behaviour exactly;
+#   add it only if you want the faster path.
+#
+# trl / datasets / bitsandbytes / autoawq / awq
+#   Not installed in the origin env and not imported by workflow A.
+#
+# deepspeed
+#   Origin has 0.19.2 (installed from a local wheel). Not used by the bench
+#   trainer: pipeline/pipelines/train/train_qwen_vl_sft.py uses plain
+#   accelerate / device_map, one GPU per process.

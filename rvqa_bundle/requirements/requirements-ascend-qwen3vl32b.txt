@@ -1,0 +1,78 @@
+# =============================================================================
+# ReasoningVQA bench — Qwen3-VL-32B-Instruct (BF16) environment (Ascend NPU)
+# =============================================================================
+# Covers: configs/vg-qwen3vl32b-instruct.yaml
+#         (file kept at its historical name; it now points at the BF16
+#          Qwen3-VL-32B-Instruct checkpoint, NOT at an AWQ one)
+#
+# Target box (MEASURED 2026-09-16):
+#   Ascend 910B4 x4, aarch64, EulerOS 2.10.11, Python 3.11, CANN 8.3.RC1.
+#
+# -----------------------------------------------------------------------------
+# INSTALL MODEL — conda clone of the on-box base env + minimal overrides
+# -----------------------------------------------------------------------------
+#   BASE ENV : /home/ma-user/anaconda3/envs/PyTorch-2.7.1
+#
+#   CLONE    :
+#       conda create -y \
+#           --prefix /home/ma-user/work/rvqa/conda_envs/vvqa4-qwen-awq \
+#           --clone /home/ma-user/anaconda3/envs/PyTorch-2.7.1
+#
+#   OVERRIDE :
+#       /home/ma-user/work/rvqa/conda_envs/vvqa4-qwen-awq/bin/python -m pip \
+#           install -r requirements/requirements-ascend-qwen3vl32b.txt \
+#           -i https://repo.huaweicloud.com/repository/pypi/simple
+#
+# torch / torch_npu / torchvision are NEVER pip-installed here: they come from
+# the cloned base env and must stay mutually matched with CANN 8.3.RC1.
+#
+# -----------------------------------------------------------------------------
+# WHY EACH OVERRIDE IS NECESSARY
+# -----------------------------------------------------------------------------
+# transformers 5.8.0
+#   `Qwen3VLForConditionalGeneration` / model_type `qwen3_vl` does NOT exist in
+#   the base 4.53.1 nor in the other two envs (4.49.0 / 4.40.0). Qwen3-VL was
+#   introduced in transformers 4.57.0; this checkpoint was written by 4.57.0.dev0.
+#   5.8.0 is the pin the bundle already carried for this model (see
+#   frozen-vvqa4-qwen-awq.txt (BLOCKED CUDA reference file)), so it is the version the code path was validated
+#   against. Installing it pulls a matching tokenizers (0.22.x) and
+#   huggingface-hub (>=1.0) automatically.
+#
+# accelerate 1.13.0
+#   Same reason as the other Ascend envs: only newer accelerate maps an integer
+#   `device_map={"": 0}` to `npu:<n>` when torch_npu is present.
+#
+# peft 0.19.1
+#   The LoRA inventory + `model.language_model.*` / `visual.*` target names of
+#   Qwen3-VL are the ones the frozen env used peft 0.19.1 with.
+#
+# qwen-vl-utils 0.0.14
+#   Used by the Qwen-VL preprocessing path (image/video -> chat template).
+#
+# numpy<2
+#   torch_npu 2.7.1 is built against the numpy 1.x ABI; do NOT let the resolver
+#   pull numpy 2.x (the CUDA requirements file pins 2.2.6 — that pin is ignored
+#   here on purpose).
+#
+# -----------------------------------------------------------------------------
+# DELIBERATELY NOT INSTALLED
+# -----------------------------------------------------------------------------
+# AWQ / GPTQModel / optimum / torchao / kernels / hf_transfer
+#   The BF16 checkpoint needs none of them. transformers 5.x's AwqQuantizer
+#   hard-depends on gptqmodel (sdist-only, CUDA kernels) — pulling it in would
+#   only add a broken dependency.
+# flash-attn
+#   No aarch64/CANN wheel; the pipeline uses attn_implementation="sdpa" served by
+#   torch_npu's scaled_dot_product_attention.
+# =============================================================================
+
+# --- MUST OVERRIDE ---
+transformers==5.8.0
+accelerate==1.13.0
+peft==0.19.1
+
+# --- Qwen-VL preprocessing ---
+qwen-vl-utils==0.0.14
+
+# --- ABI guard: keep numpy 1.x (torch_npu 2.7.1) ---
+numpy<2

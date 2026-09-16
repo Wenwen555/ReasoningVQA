@@ -1,0 +1,33 @@
+built: 2026-09-16T12:36:33+08:00 on admin.cluster.local
+source bench:   /data/wenjt/reasoningvqa_bench
+source subsets: /data/wenjt/reasoningvqa_subsets
+
+e146c816b780d86a1ff6a686b87ad9b4228667606cb0e23f37d935cf877491ec  /home/wenjt/rvqa_migrate/bundle/reasoningvqa_bench_code.tgz
+79964ff52c6969ba3bc4a18111e2179f7b726c5357e290273aae72c0811bf64a  /home/wenjt/rvqa_migrate/bundle/reasoningvqa_bench_data.tgz
+76b73cc537e56ec2809d51a713d8991c2fb3d3dc08ccd7c42d2ffbb7b7fbe1b8  /home/wenjt/rvqa_migrate/bundle/reasoningvqa_official.tgz
+dee906c39f074e25ab00e43c511aefa9fcd1f0352f92c7a9ba61a8db6426dfcd  /home/wenjt/rvqa_migrate/bundle/reasoningvqa_subsets_data.tgz
+
+--- scoring_extra ---
+612 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/config.json
+116 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/config_sentence_transformers.json
+39265 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/data_config.json
+1229 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/.gitattributes
+90868376 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/model.safetensors
+349 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/modules.json
+90888945 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/pytorch_model.bin
+10502 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/README.md
+53 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/sentence_bert_config.json
+112 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/special_tokens_map.json
+350 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/tokenizer_config.json
+466247 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/tokenizer.json
+13156 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/train_script.py
+231508 /home/wenjt/rvqa_migrate/bundle/scoring_extra/all-MiniLM-L6-v2/vocab.txt
+19205 /home/wenjt/rvqa_migrate/bundle/scoring_extra/evaluate_reasonvqa_mc_qwen.py
+
+--- inat_manifests_open ---
+689 /home/wenjt/rvqa_migrate/bundle/inat_manifests_open/dev.composition.json
+1036480 /home/wenjt/rvqa_migrate/bundle/inat_manifests_open/dev.jsonl
+447 /home/wenjt/rvqa_migrate/bundle/inat_manifests_open/dev.validation.json
+701 /home/wenjt/rvqa_migrate/bundle/inat_manifests_open/train.composition.json
+2456393 /home/wenjt/rvqa_migrate/bundle/inat_manifests_open/train.jsonl
+455 /home/wenjt/rvqa_migrate/bundle/inat_manifests_open/train.validation.json

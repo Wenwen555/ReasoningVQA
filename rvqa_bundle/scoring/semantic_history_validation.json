@@ -1,0 +1,12 @@
+{
+  "status": "completed",
+  "rows_compared": 894,
+  "semantic_backend": "raw_transformers_mean_pool",
+  "pooling": "attention-mask mean pooling followed by L2 normalization",
+  "model_path": "/data/wenjt/projects/ReasoningVQA/experiments/RVQA-REASONVQA-GLDV2-PAPER-REIMPL-20260802/models/all-MiniLM-L6-v2",
+  "mean_abs_diff": 3.6957516007948923e-09,
+  "max_abs_diff": 1.5050682067307974e-07,
+  "historical_scores": "/data/wenjt/projects/ReasoningVQA/experiments/RVQA-REASONVQA-GLDV2-PAPER-REIMPL-20260802/runs/base-formal-qwen25vl7b-v0.1/semantic_scores.jsonl",
+  "manifest": "/data/wenjt/projects/ReasoningVQA/experiments/RVQA-REASONVQA-GLDV2-PAPER-REIMPL-20260802/data/formal-v0.1/test.jsonl",
+  "note": "historical cosine_similarity is stored rounded to 8 decimals"
+}

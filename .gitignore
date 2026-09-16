@@ -1,0 +1,32 @@
+# --- Python caches & temp ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+*.log
+*.tmp
+*.pid
+
+# --- Local data, models, environments (never commit) ---
+/conda_envs/
+/llm_models/
+/models/
+/projects/
+/reasoningvqa_bench/
+/reasoningvqa_official/
+/reasoningvqa_subsets/
+/fusion_result.json
+
+# --- Bundle snapshots / generated artifacts ---
+/rvqa_bundle/*.tgz
+/rvqa_bundle/*.log
+/rvqa_bundle/*.pid
+
+# --- Model weights & regenerable inventories ---
+/rvqa_bundle/scoring_extra/all-MiniLM-L6-v2/
+/rvqa_bundle/inventories/
+
+# --- Generated manifests & scoring outputs ---
+/rvqa_bundle/inat_manifests_open/
+/rvqa_bundle/scoring/oracle_run_*/
+/rvqa_bundle/scoring/synthetic_run/

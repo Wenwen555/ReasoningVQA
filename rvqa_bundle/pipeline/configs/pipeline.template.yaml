@@ -1,0 +1,92 @@
+source:
+  pipeline_root: /code/reasoningvqa/pipelines
+output:
+  experiment_root: /experiments/reasoningvqa-unified
+runtime:
+  python: /envs/reasoningvqa/bin/python
+model:
+  backend: qwen_vl
+  checkpoint: /models/qwen-vl-checkpoint
+  inventory: /models/qwen-vl-inventory.json
+
+datasets:
+  sources:
+    - name: inaturalist-train
+      adapter: inaturalist
+      input: /datasets/inaturalist/train.jsonl
+      image_root: /datasets/inaturalist/images
+      split: train
+    - name: inaturalist-dev
+      adapter: inaturalist
+      input: /datasets/inaturalist/dev.jsonl
+      image_root: /datasets/inaturalist/images
+      split: dev
+    - name: gldv2-train
+      adapter: gldv2
+      input: /datasets/gldv2/train.jsonl
+      image_root: /datasets/gldv2/images
+      split: train
+    - name: gldv2-dev
+      adapter: gldv2
+      input: /datasets/gldv2/dev.jsonl
+      image_root: /datasets/gldv2/images
+      split: dev
+    - name: visual-genome-train
+      adapter: visual_genome
+      input: /datasets/visual-genome/train.jsonl
+      image_root: /datasets/visual-genome/images
+      split: train
+    - name: visual-genome-dev
+      adapter: visual_genome
+      input: /datasets/visual-genome/dev.jsonl
+      image_root: /datasets/visual-genome/images
+      split: dev
+  manifests:
+    - name: train
+      inputs: [inaturalist-train, gldv2-train, visual-genome-train]
+    - name: dev
+      inputs: [inaturalist-dev, gldv2-dev, visual-genome-dev]
+
+actions:
+  prepare: []
+  train:
+    - name: train-canonical-sft
+      operation: canonical_sft
+      env:
+        CUDA_VISIBLE_DEVICES: "0"
+      args:
+        - --model
+        - "{model}"
+        - --manifest
+        - "{experiment_root}/data/manifests/train.jsonl"
+        - --inventory
+        - "{inventory}"
+        - --output
+        - "{experiment_root}/train"
+  evaluate:
+    - name: evaluate-canonical
+      operation: canonical_generation
+      env:
+        CUDA_VISIBLE_DEVICES: "0"
+      args:
+        - --manifest
+        - "{experiment_root}/data/manifests/dev.jsonl"
+        - --model
+        - "{model}"
+        - --adapter
+        - "{experiment_root}/train/adapter"
+        - --output
+        - "{experiment_root}/evaluation/correct-image"
+        - --mode
+        - correct-image
+    - name: validate-canonical-predictions
+      script: evaluate/validate_canonical_predictions.py
+      args:
+        - --manifest
+        - "{experiment_root}/data/manifests/dev.jsonl"
+        - --predictions
+        - "{experiment_root}/evaluation/correct-image/predictions.jsonl"
+        - --output
+        - "{experiment_root}/evaluation/correct-image/independent_validation.json"
+        - --mode
+        - correct-image

@@ -1,0 +1,63 @@
+# #############################################################################
+# !! WARNING — CUDA / x86_64 ONLY !!
+# 仅适用于源机 x86_64 + CUDA 12.2，勿在 Ascend 目标机使用。
+# 请改用 requirements/requirements-ascend*.txt（Ascend snt9b / aarch64）。
+#
+# AWQ IS NOT VIABLE ON ASCEND:
+#   transformers 5.8.0 的 AwqQuantizer 硬依赖 gptqmodel（PyPI 只有 sdist，需源码
+#   编译），且默认后端全是 CUDA kernel。Qwen3-VL-32B-Instruct-AWQ 在 Ascend 上
+#   走纯 transformers 路径确定不可行。本轮不建该环境（setup_envs_ascend.sh 只打印
+#   跳过说明），需改走 msModelSlim 的 W8A8/W4A16 量化 + vLLM-Ascend 推理。
+# #############################################################################
+# =============================================================================
+# ReasoningVQA bench — Qwen3-VL-32B-Instruct-AWQ environment
+# =============================================================================
+# Covers: configs/vg-qwen3vl32b-awq.yaml  (currently marked PLACEHOLDER)
+# Source env: /data/wenjt/conda_envs/vvqa4-qwen-awq  -> Python 3.10.20
+#
+# WHY A SEPARATE ENV: Qwen3-VL uses the modern `model.language_model.*` module
+# prefixes, and AWQ needs transformers 5.x. Incompatible with the 4.49.0 /
+# 4.40.0 envs above.
+#
+#   conda create -y -n rvqa-qwen3awq python=3.10
+#   conda activate rvqa-qwen3awq
+#   pip install -r requirements-qwen3vl32b-awq.txt --extra-index-url https://download.pytorch.org/whl/cu121
+#
+# NOT INCLUDED ON PURPOSE: autoawq / awq. The origin env does NOT have them
+# (checked via importlib.metadata). Only add them if the remote run actually
+# needs to *quantize*; loading an already-AWQ checkpoint does not.
+#
+# BLOCKER CARRIED OVER: the config is PLACEHOLDER because the current trainer
+# uses device_map={"": 0} (one GPU per process) and 32B AWQ needs model
+# parallelism. Fix the trainer before launching.
+# =============================================================================
+
+torch==2.5.1+cu121
+torchvision==0.20.1+cu121
+
+transformers==5.8.0
+tokenizers==0.22.2
+accelerate==1.13.0
+peft==0.19.1
+safetensors==0.7.0
+sentencepiece==0.2.1
+regex==2026.4.4
+einops==0.8.2
+numpy==2.2.6
+pillow==12.2.0
+
+PyYAML==6.0.3
+packaging==26.0
+protobuf==6.32.0
+requests==2.33.1
+tqdm==4.67.3
+
+scipy==1.15.3
+scikit-learn==1.7.2
+
+qwen-vl-utils==0.0.14
+ninja==1.13.0
+psutil==7.2.2
+av==17.0.1
+
+# Optional (see requirements.txt notes): flash-attn==2.7.4.post1, huggingface-hub==0.29.3

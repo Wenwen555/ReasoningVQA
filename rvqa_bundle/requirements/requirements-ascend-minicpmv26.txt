@@ -1,0 +1,74 @@
+# =============================================================================
+# ReasoningVQA bench — MiniCPM-V-2_6 environment (Ascend NPU)
+# =============================================================================
+# Covers: configs/vg-minicpmv26.yaml  (currently marked PLACEHOLDER)
+# Target box (MEASURED 2026-09-16 — see MIGRATION_PLAN.md §11):
+#   Ascend 910B4 x4, aarch64, EulerOS 2.10.11, Python 3.11, CANN 8.3.RC1.
+#   The recommended image is ALREADY RUNNING on the box — do NOT pre-provision.
+#
+# WHY A SEPARATE ENV: MiniCPM-V-2_6 is loaded through the legacy
+# AutoModel + trust_remote_code path and pins transformers 4.40.0, which is
+# incompatible with the 4.49.0 required by the Qwen2.5-VL inventories.
+#
+# -----------------------------------------------------------------------------
+# INSTALL MODEL — conda clone of the on-box base env + minimal overrides
+# -----------------------------------------------------------------------------
+# Same strategy as requirements-ascend.txt: clone the base env, then override
+# only what is functionally required.
+#
+#   BASE ENV : /home/ma-user/anaconda3/envs/PyTorch-2.7.1
+#
+#   CLONE    :
+#       conda create --yes \
+#           --prefix /home/ma-user/work/rvqa/conda_envs/vvqa4-minicpm-v26 \
+#           --clone /home/ma-user/anaconda3/envs/PyTorch-2.7.1
+#
+#   OVERRIDE :
+#       /home/ma-user/work/rvqa/conda_envs/vvqa4-minicpm-v26/bin/python -m pip \
+#           install -r requirements/requirements-ascend-minicpmv26.txt \
+#           -i https://repo.huaweicloud.com/repository/pypi/simple
+#
+# -----------------------------------------------------------------------------
+# WHY EACH OVERRIDE IS NECESSARY
+# -----------------------------------------------------------------------------
+# transformers 4.53.1 -> 4.40.0
+#   MiniCPM-V-2_6's remote code / chat template targets the 4.40.x API.  This is
+#   a DIFFERENT pin from the primary env (4.49.0), which is exactly why the
+#   MiniCPM env is a separate clone.
+# tokenizers 0.21.0 -> 0.19.1
+#   transformers 4.40.0 requires tokenizers>=0.19,<0.20, so the base 0.21.0 must
+#   be downgraded in this env only.
+# accelerate 1.0.1 -> 1.13.0
+#   Same reason as the primary env: only newer accelerate maps an integer
+#   `device_map={"": 0}` to `npu:<n>` when torch_npu is available.
+#
+# -----------------------------------------------------------------------------
+# DELIBERATELY NOT CHANGED (and why)
+# -----------------------------------------------------------------------------
+# numpy           KEEP the base 1.26.4 (torch_npu 2.7.1 is built against numpy
+#                 1.x; do NOT install 2.2.6).
+# huggingface-hub KEEP 0.36.2 (pinned below to stop an upgrade; satisfies
+#                 transformers 4.40.0 which allows >=0.19.3,<1.0).
+# torch / torch_npu / torchvision, peft 0.14.0, safetensors, sentencepiece,
+# pillow, scipy, scikit-learn, PyYAML, einops, ...  inherited from the clone.
+#
+# -----------------------------------------------------------------------------
+# FLASH-ATTENTION — NOT INSTALLED, AND MUST NOT BE INSTALLED
+# -----------------------------------------------------------------------------
+# No aarch64/CANN wheel exists; the pipeline uses attn_implementation="sdpa",
+# served by the torch_npu scaled_dot_product_attention operator.
+#
+# BLOCKER CARRIED OVER: the origin box could not make MiniCPM-V-2_6's chat
+# template work. This env reproduces the origin state; it does not fix the
+# blocker. Do not launch this config expecting it to run.
+# =============================================================================
+
+# --- MUST OVERRIDE ---
+transformers==4.40.0
+tokenizers==0.19.1
+accelerate==1.13.0
+
+# --- compatibility pin: matches the base env; stops pip from upgrading it ---
+huggingface-hub==0.36.2
+
+# (no other pins on purpose — everything else comes from the PyTorch-2.7.1 clone)

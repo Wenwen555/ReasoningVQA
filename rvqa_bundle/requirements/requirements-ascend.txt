@@ -1,0 +1,109 @@
+# =============================================================================
+# ReasoningVQA bench pipeline (workflow A) — PRIMARY environment (Ascend NPU)
+# =============================================================================
+# Covers: configs/vg-qwen25vl7b.yaml, configs/inat-qwen25vl7b.yaml,
+#         configs/vg-qwen25vl32b.yaml
+# Target box (MEASURED 2026-09-16 — see MIGRATION_PLAN.md §11):
+#   Ascend 910B4 x4, aarch64, EulerOS 2.10.11, Python 3.11, CANN 8.3.RC1.
+#   NOT x86_64, NOT CUDA.
+#   The recommended image is ALREADY RUNNING on the box — do NOT pre-provision:
+#     CURRENT_IMAGE_NAME=swr.cn-south-1.myhuaweicloud.com/atelier/pytorch_ascend:pytorch_2.7.1-cann_8.3.rc1-py_3.11-euler2.10.11-aarch64-snt9b-20260402124057-b4bd7bb
+#
+# -----------------------------------------------------------------------------
+# INSTALL MODEL — conda clone of the on-box base env + minimal overrides
+# -----------------------------------------------------------------------------
+# The box already ships a working, mutually-matched Ascend stack in a conda env
+# (torch 2.7.1+cpu / torch_npu 2.7.1.post2 / CANN 8.3.RC1).  We do NOT build a
+# venv from scratch and we do NOT pip-install torch.
+#
+#   BASE ENV : /home/ma-user/anaconda3/envs/PyTorch-2.7.1
+#
+#   CLONE    :
+#       conda create --yes \
+#           --prefix /home/ma-user/work/rvqa/conda_envs/videoespresso-common \
+#           --clone /home/ma-user/anaconda3/envs/PyTorch-2.7.1
+#
+#   OVERRIDE :
+#       /home/ma-user/work/rvqa/conda_envs/videoespresso-common/bin/python -m pip \
+#           install -r requirements/requirements-ascend.txt \
+#           -i https://repo.huaweicloud.com/repository/pypi/simple
+#
+# Only the packages under "MUST OVERRIDE" below are changed.  Everything else is
+# inherited from the clone and MUST be left at the base version.
+#
+# The absolute `runtime.python:` rows in configs/*.yaml become
+#   /home/ma-user/work/rvqa/conda_envs/videoespresso-common/bin/python
+# after 03_remote_unpack.sh rewrites /data/wenjt/ -> /home/ma-user/work/rvqa/,
+# which is why the clone prefix above must match that target root.
+#
+# -----------------------------------------------------------------------------
+# BASE ENV PACKAGE VERSIONS (measured on the box — for reference only; this file
+# deliberately does NOT pin them, the clone already provides them)
+# -----------------------------------------------------------------------------
+#   torch            2.7.1+cpu        image wheel, paired with torch_npu
+#   torch-npu        2.7.1.post2
+#   torchvision      0.21.0
+#   transformers     4.53.1           -> OVERRIDDEN to 4.49.0 below
+#   tokenizers       0.21.0           satisfies transformers 4.49.0 (>=0.21,<0.22)
+#   accelerate       1.0.1            -> OVERRIDDEN to 1.13.0 below
+#   peft             0.14.0
+#   numpy            1.26.4           KEEP (do not upgrade; see below)
+#   huggingface-hub  0.36.2           satisfies transformers 4.49.0 (>=0.26,<1.0)
+#   pillow           11.3.0
+#   scipy            1.15.3
+#   scikit-learn     1.7.1
+#   sentencepiece    0.2.0
+#   safetensors      0.4.5
+#   PyYAML           6.0.2
+#   einops           0.8.0
+#
+# -----------------------------------------------------------------------------
+# WHY EACH OVERRIDE IS NECESSARY
+# -----------------------------------------------------------------------------
+# transformers 4.53.1 -> 4.49.0
+#   The LoRA target inventories (inventories/*.json, sha256-checked) are keyed
+#   to the LEGACY module prefixes `model.layers.*` / `visual.*` emitted by
+#   transformers 4.49.0.  4.50+ renamed / restructured those paths, so the
+#   inventory load fails or silently targets the wrong modules.
+#
+# accelerate 1.0.1 -> 1.13.0
+#   The trainer passes `device_map={"": 0}`.  Only newer accelerate versions
+#   explicitly detect torch_npu (`is_npu_available()`) and map an INTEGER device
+#   argument to `npu:<n>`.  With accelerate 1.0.1 the integer stays a CUDA index,
+#   so the model never lands on the NPU.  1.13.0 is the version this mapping was
+#   verified against (see setup_envs_ascend.sh smoke test).
+#
+# -----------------------------------------------------------------------------
+# DELIBERATELY NOT CHANGED (and why)
+# -----------------------------------------------------------------------------
+# numpy           KEEP the base 1.26.4.  torch_npu 2.7.1 is built against the
+#                 numpy 1.x ABI; installing numpy 2.2.6 risks the classic ABI
+#                 break.  There is NO numpy pin in this file on purpose.
+# huggingface-hub KEEP 0.36.2 (pinned below only to stop pip from silently
+#                 upgrading it).  transformers 4.49.0 requires >=0.26,<1.0, so
+#                 0.36.2 is valid.  Do NOT pin it back to 0.29.3.
+# torch / torch_npu / torchvision
+#                 supplied by the cloned base env; never pip-installed here.
+# peft / safetensors / sentencepiece / pillow / scipy / scikit-learn / PyYAML /
+# einops / requests / tqdm / protobuf / packaging / regex / ninja / av / psutil
+#                 inherited from the base env; no functional need to change.
+#
+# -----------------------------------------------------------------------------
+# FLASH-ATTENTION — NOT INSTALLED, AND MUST NOT BE INSTALLED
+# -----------------------------------------------------------------------------
+# No aarch64/CANN flash-attn wheel exists (PyPI only ships an sdist whose build
+# targets the CUDA kernel ABI).  The bench pipeline does not need it either:
+# train_qwen_vl_sft.py:360 and evaluate_structured_reasoning.py:25 hard-code
+# attn_implementation="sdpa", and torch_npu 2.7.1 registers the
+# scaled_dot_product_attention operator.  Do NOT add flash-attn to this file and
+# do NOT run `pip install flash-attn`.
+# =============================================================================
+
+# --- MUST OVERRIDE: the only packages pip should actually change ---
+transformers==4.49.0
+accelerate==1.13.0
+
+# --- compatibility pin: matches the base env; stops pip from upgrading it ---
+huggingface-hub==0.36.2
+
+# (no other pins on purpose — everything else comes from the PyTorch-2.7.1 clone)
