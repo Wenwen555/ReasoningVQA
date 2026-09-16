@@ -38,8 +38,7 @@ rvqa_bundle/
 ├── scoring/                  # 纯评分 harness
 ├── scoring_extra/            # canonical MC 指标源
 ├── tools/                    # 数据过滤工具
-├── requirements/             # 环境依赖（CUDA / Ascend）
-└── gldv2/                    # GLDv2 子集说明与统计
+└── requirements/             # 环境依赖（CUDA / Ascend）
 ```
 
 ## 环境安装
